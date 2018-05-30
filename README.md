@@ -46,8 +46,7 @@
 ```
 设置 Expires: Sat, 27 May 2028 06:15:41 GMT 之后，浏览器在后续页面浏览中会使用缓存版本，HTTP请求会减少一个。
 
-基于Nginx设置Expires：
-    在nginx.conf中配置
+在nginx.conf中配置Expires：
     location ~ image {
         root /var/www/;
         expires 1d;
@@ -89,3 +88,45 @@ if ($request_uri ~* "^/$|^/search/.+/|^/company/.+/") {
     <script src=map.js></script>
 ```
 
+## 压缩组件
+<p>使用gzip编码来压缩HTTP响应包，可以减少网络响应时间。</p>
+<p>HTTP 1.1开始，服务端可以通过 Accept-Encoding 来识别浏览器对压缩类型的支持。Accept-Encoding: gzip, deflate</p>
+<p>客户端可以通过 Content-Encoding 来识别服务器当前使用的压缩类型。Content-Encoding: gzip</p>
+
+```
+在nginx.conf中开启gzip：
+
+    # 开启gzip
+    gzip on;
+    
+    # 启用gzip压缩的最小文件，小于设置值的文件将不会压缩
+    gzip_min_length 1k;
+    
+    # gzip 压缩级别，1-10，数字越大压缩的越好，也越占用CPU时间，后面会有详细说明
+    gzip_comp_level 2;
+    
+    # 进行压缩的文件类型。javascript有多种形式。其中的值可以在 mime.types 文件中找到。
+    gzip_types text/plain application/javascript application/x-javascript text/css application/xml text/javascript application/x-httpd-php image/jpeg image/gif image/png font/ttf font/otf image/svg+xml;
+    
+    # 是否在http header中添加Vary: Accept-Encoding，建议开启-避免使用代理导致的问题（见下）
+    gzip_vary on;
+    
+    # 禁用IE 6 gzip
+    gzip_disable "MSIE [1-6]\.";
+    
+```
+
+```
+如果浏览器使用了代理来发送请求时，会出现一些复杂的情况：
+    1、第一个请求是不支持gzip的浏览器发起的，此时代理缓存为空，代理会将请求转发到源服务器；
+       此时代理获取到的响应是未经压缩的，并被代理缓存起来；
+       第二个相同的请求是支持gzip的浏览器发起的，此时代理已有缓存，该缓存会作为响应发送到前端；
+       这样第二个请求失去了gzip的压缩机会。
+    2、第一个请求是支持gzip的浏览器发起的，此时代理缓存为空，代理会将请求转发到源服务器；
+       此时代理获取到的响应是经gzip压缩的，并被代理缓存起来；
+       第二个相同的请求是不支持gzip的浏览器发起的，此时代理已有缓存，该缓存会作为响应发送到前端；
+       这样第二个请求拿到的是经过gzip压缩的响应。
+解决方案：
+    在源服务器的响应中加上Vary: Accept-Encoding，通知代理服务器基于Accept-Encoding来改变缓存的响应。
+    代理会为有指定Accept-Encoding缓存一份，为没有指定该字段的缓存一份。
+```
