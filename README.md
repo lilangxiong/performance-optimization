@@ -24,8 +24,7 @@
 #### [1-3] Combined Scripts and Stylesheets （合并脚本和样式表）
 ```
 1、使用外部脚本、样式表对性能更有利，而行内脚本会阻塞HTML的渲染。
-2、保持javascript的模块化，在生成过程中从一组特定的模块生成一个目标文件。（目前webpack实现可以实现模块化开发、打包压缩）
-3、混淆、压缩精简js文件。
+2、保持javascript的模块化，在生成过程中从一组特定的模块生成一个目标文件。（目前webpack实现可以实现模块化开发、打包）
 ```
 
 ## [2] 使用内容分发网络（CDN）
@@ -41,5 +40,52 @@
 - 网宿科技
 - 金山云
 
-## [3] 设置Expires头部字段
+## [3] 通过 HTTP Header 设置缓存静态资源
+
+#### Expires
+```
+设置 Expires: Sat, 27 May 2028 06:15:41 GMT 之后，浏览器在后续页面浏览中会使用缓存版本，HTTP请求会减少一个。
+
+基于Nginx设置Expires：
+    在nginx.conf中配置
+    location ~ image {
+        root /var/www/;
+        expires 1d;
+        index index.html;
+    }
+
+缺陷：
+    1、要求服务器、客户端时钟严格同步。
+    2、需要经常检查过期时间。
+    3、一旦过期之后，需要在服务器配置中提供一个新的日期。
+
+```
+
+#### Cache-Control: max-age=*****
+```
+1、Cache-Control: max-age = 10000000，表示从组件被请求开始过去的秒数少于max-age，浏览器就
+   继续使用缓存版本（HTTP 1.1版本以上）。
+2、使用Cache-Control可以消除Expires的限制。
+3、Cache-Control: max-age=***的优先级高于Expires。
+    
+基于Nginx的 ngx_http_headers_module 模块设置Cacht-Control：
+if ($request_uri ~* "^/$|^/search/.+/|^/company/.+/") {
+     add_header    Cache-Control  max-age=3600;
+}
+```
+#### 增加了缓存时间的文件，再次更新方案
+- 直接修改所有的链接，全新的请求就会从源服务器上下载最新版本的文件。-----此方案无法再大型、复杂的项目中使用，容易出错。
+- 为所有的组件的文件名使用变量，进行映射，在需要的文件中引用变量；修改时，只需要修改变量对应的内容（一般是在文件名后面增加版本号）即可。
+```
+实例:
+    // map.js 导出一个映射
+    export default map = {
+        pic: 'https://www.xxx.com/assets/images/logo_0.0.1.png',
+        js: 'https//www.xxx.com/assets/js/util_0.0.1.js'
+    }
+    
+    // index.js 应用映射导入文件
+    import map from 'map'
+    <script src=map.js></script>
+```
 
