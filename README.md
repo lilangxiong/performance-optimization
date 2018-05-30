@@ -8,7 +8,7 @@
 将多个图片合并到一个单独的图片中，利用CSS的background-position属性，将HTML元素放在背景图片中期望的位置上。
 ```
 #### [1-2] Inline Images (内联图片)
-----> 使用data: [<mediatype>][;base64],<data>的模式在页面中包含图片无需任何额外的HTTP请求。
+----> 使用data: [\<mediatype\>][;base64],<data>的模式在页面中包含图片无需任何额外的HTTP请求。
 ```
 实例：<img src="data:image/gif;base64,R0lGODlhAwADAIABAL6+vv///yH5BAEAAAEALAAAAAADAAMAAAIDjA9WADs=" />
 
@@ -135,3 +135,43 @@ if ($request_uri ~* "^/$|^/search/.+/|^/company/.+/") {
     在源服务器的响应中加上Vary: Accept-Encoding，通知代理服务器基于Accept-Encoding来改变缓存的响应。
     代理会为有指定Accept-Encoding缓存一份，为没有指定该字段的缓存一份。
 ```
+
+## CSS放在顶部
+
+## Javascript放在底部
+**同一时间针对同一域名下的请求**
+<table>
+    <tr>
+        <th>浏览器</th>
+        <th>并行下载数</th>
+    </tr>
+    <tr>
+        <td>Chrome</td>
+        <td>6</td>
+    </tr>
+    <tr>
+        <td>FirFox</td>
+        <td>6</td>
+    </tr>
+    <tr>
+        <td>IE8+</td>
+        <td>6</td>
+    </tr>
+    <tr>
+        <td>IE7</td>
+        <td>4</td>
+    </tr>
+    <tr>
+        <td>IE6</td>
+        <td>2</td>
+    </tr>
+</table>
+
+**可以通过使用CNAME（DNS别名）将组件分别放在多个域名下。增加并行加载数**
+
+## 使用外部的CSS以及Javascript
+- 外部的Javascript、CSS能够被浏览器缓存。
+- 外部的Javascript、CSS可以被多个页面重用。
+
+## 减少DNS查找
+
